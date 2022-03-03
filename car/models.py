@@ -1,4 +1,4 @@
-from ast import mod
+from tabnanny import verbose
 from django.db import models
 
 
@@ -15,6 +15,14 @@ class Manufacturer(DateControls):
     
     def __str__(self):
         return self.name
+    
+
+class Feature(DateControls):
+    name = models.CharField(max_length=100, help_text="holds the name for car features", unique=True)
+    description = models.TextField(null=True, blank=True)
+    
+    def __str__(self):
+        return self.name
 
 
 class Car(DateControls):
@@ -24,8 +32,20 @@ class Car(DateControls):
     manufacture_date = models.DateTimeField()
     manufacturer = models.ForeignKey(
         Manufacturer, related_name="car_manufacturers", on_delete=models.CASCADE)
+    features = models.ManyToManyField(Feature, related_name="car_features")
     
     def __str__(self):
         return f"{self.manufacturer.name} {self.name}"
     
+    class Meta:
+        ordering = ("id",)
+        
+    
+    
+class CarProfile(models.Model):
+    year = models.PositiveIntegerField()
+    car = models.OneToOneField(Car, on_delete=models.CASCADE, related_name="car_profile")
+    
+    def __str__(self):
+        return f"{self.car.manufacturer.name} {self.car.name}"
     
