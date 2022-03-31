@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from operator import attrgetter
+from django.utils.text import slugify
 
 
 vehicle_types = (
@@ -84,20 +84,13 @@ class Vehicle(DateControl):
     location = models.ForeignKey(Location, related_name="vehicles", on_delete=models.CASCADE)
     mileage = models.FloatField()
     price = models.FloatField()
+    slug = models.CharField(max_length=150, null=True)
     negotiable = models.BooleanField()
     features = models.ManyToManyField(Feature, related_name="vehicle_features")
     
     def save(self, *args, **kwargs):
-        # save the location first
-        city, state, country = attrgetter('city','state','country')(kwargs)
-        try:
-            location = Location.objects.create(city=city, state=state, country=country)
-        except Exception as e:
-            # log error info e
-            location = Location.objects.get(city=city, state=state, country=country)
-            
-        self.location = location
-        super(Vehicle, self).save(*args, **kwargs)
+        self.slug = slugify(self.common_name)
+        super().save(*args, **kwargs)
         
     def __str__(self):
         return f"{self.common_name} - {self.created_at}"
